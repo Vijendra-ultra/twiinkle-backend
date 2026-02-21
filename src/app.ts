@@ -11,7 +11,15 @@ const {
 supertokens.init(supertokensConfig);
 
 const app = express();
-app.use(cors({ origin: process.env.WEBSITE_DOMAIN, credentials: true }));
+app.use(
+  cors({
+    origin: process.env.WEBSITE_DOMAIN,
+    credentials: true,
+    methods: ["GET", "POST", "PUT", "OPTIONS"],
+    allowedHeaders: ["Content-Type", "Authorization"],
+  }),
+);
+app.options("*", cors());
 app.use(express.json());
 app.use(middleware());
 
