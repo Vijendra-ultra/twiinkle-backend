@@ -2,6 +2,17 @@ require("dotenv").config();
 const Session = require("supertokens-node/recipe/session");
 const EmailPassword = require("supertokens-node/recipe/emailpassword");
 const EmailVerification = require("supertokens-node/recipe/emailverification");
+const sendEmail = require("../config/supertokensconfig");
+const passwordResetEmailTemplate = require("../email/templates/passwordReset");
+const verificationEmailTemplate = require("../email/templates/emailVerification");
+
+type sesEmailInput = {
+  email: string;
+  user: string;
+  type: "PASSWORD_RESET" | "EMAIL_VERIFICATION";
+  passwordResetLink?: string;
+  emailVerifyLink?: string;
+};
 const supertokensConfig = {
   framework: "express",
   supertokens: { connectionURI: process.env.SUPERTOKENS_CORE_URI },
@@ -13,7 +24,34 @@ const supertokensConfig = {
     websiteBasePath: "/auth",
   },
   recipeList: [
-    EmailPassword.init(),
+    EmailPassword.init({
+      override: {
+        //@ts-ignore
+        emailDelivery: (originalImplementation) => {
+          return {
+            //@ts-ignore
+            ...originalImplementation,
+            sendEmail: async (input: sesEmailInput) => {
+              const { email, type } = input;
+              if (type === "PASSWORD_RESET") {
+                await sendEmail(
+                  email,
+                  "Reset your password",
+                  passwordResetEmailTemplate(input.passwordResetLink),
+                );
+              }
+              if (type === "EMAIL_VERIFICATION") {
+                await sendEmail(
+                  email,
+                  "Verify your mail",
+                  verificationEmailTemplate(input.emailVerifyLink),
+                );
+              }
+            },
+          };
+        },
+      },
+    }),
     Session.init(),
     EmailVerification.init({ mode: "REQUIRED" }),
   ],
