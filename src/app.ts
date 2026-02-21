@@ -16,7 +16,14 @@ app.use(
     origin: process.env.WEBSITE_DOMAIN,
     credentials: true,
     methods: ["GET", "POST", "PUT", "OPTIONS"],
-    allowedHeaders: ["Content-Type", "Authorization"],
+    allowedHeaders: [
+      "Content-Type",
+      "Authorization",
+      "rid",
+      "fdi-version",
+      "anti-csrf",
+      "st-auth-mode",
+    ],
   }),
 );
 app.use(express.json());
