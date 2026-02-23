@@ -2,7 +2,8 @@ require("dotenv").config();
 const Session = require("supertokens-node/recipe/session");
 const EmailPassword = require("supertokens-node/recipe/emailpassword");
 const EmailVerification = require("supertokens-node/recipe/emailverification");
-const sendEmail = require("../config/supertokensconfig");
+// const sendEmail = require("../config/supertokensconfig");
+const sesEmailSender = require("../middleware/sesEmailSender");
 const passwordResetEmailTemplate = require("../email/templates/passwordReset");
 const verificationEmailTemplate = require("../email/templates/emailVerification");
 
@@ -34,14 +35,14 @@ const supertokensConfig = {
             sendEmail: async (input: sesEmailInput) => {
               const { email, type } = input;
               if (type === "PASSWORD_RESET") {
-                await sendEmail(
+                await sesEmailSender(
                   email,
                   "Reset your password",
                   passwordResetEmailTemplate(input.passwordResetLink),
                 );
               }
               if (type === "EMAIL_VERIFICATION") {
-                await sendEmail(
+                await sesEmailSender(
                   email,
                   "Verify your mail",
                   verificationEmailTemplate(input.emailVerifyLink),

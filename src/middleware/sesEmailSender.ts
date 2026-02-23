@@ -7,7 +7,7 @@ const sesClient = new distTypes.SESClient({
     secretAccessKey: process.env.AWS_ACCESS_SECRET_KEY!,
   },
 });
-const sendEmail = async (to: string, subject: string, body: string) => {
+const sesEmailSender = async (to: string, subject: string, body: string) => {
   const command = new distTypes.SendEmailCommand({
     Destination: {
       ToAddresses: [to],
@@ -28,4 +28,4 @@ const sendEmail = async (to: string, subject: string, body: string) => {
   });
   await sesClient.send(command);
 };
-module.exports = sendEmail;
+module.exports = sesEmailSender;
