@@ -30,6 +30,25 @@ const supertokensConfig = {
   },
   recipeList: [
     EmailPassword.init({
+      override: {
+        //@ts-ignore
+        apis: (originalImplementation) => ({
+          ...originalImplementation,
+          signUpPOST: async (input: sesEmailInput) => {
+            const response = await originalImplementation.signUpPOST!(input);
+            if (response.status === "OK") {
+              console.log("Signup success, triggering verification email...");
+
+              await EmailVerification.sendEmailVerificationEmail(
+                "public",
+                response.user.id,
+                response.user.emails,
+              );
+            }
+            return response;
+          },
+        }),
+      },
       emailDelivery: {
         //@ts-ignore
         override: (originalImplementation) => {
@@ -51,20 +70,26 @@ const supertokensConfig = {
     }),
     EmailVerification.init({
       mode: "REQUIRED",
+
       emailDelivery: {
         //@ts-ignore
-        override: (originalImplementation) => ({
-          ...originalImplementation,
-          sendEmail: async (input: sesEmailInput) => {
-            if (input.type === "EMAIL_VERIFICATION") {
-              await sesEmailSender(
-                input.user.email,
-                "Verify your mail",
-                verificationEmailTemplate(input.emailVerifyLink),
-              );
-            }
-          },
-        }),
+        override: (originalImplementation) => {
+          console.log("Override is being reached");
+          return {
+            ...originalImplementation,
+            sendEmail: async (input: sesEmailInput) => {
+              console.log("Verification sendEmail called", input.user.email);
+              console.log(input.type);
+              if (input.type === "EMAIL_VERIFICATION") {
+                await sesEmailSender(
+                  input.user.email,
+                  "Verify your mail",
+                  verificationEmailTemplate(input.emailVerifyLink),
+                );
+              }
+            },
+          };
+        },
       },
     }),
     Session.init(),
