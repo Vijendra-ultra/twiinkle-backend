@@ -1,3 +1,5 @@
+// import sendEmail = require("supertokens-node/recipe/emailverification");
+
 require("dotenv").config();
 const Session = require("supertokens-node/recipe/session");
 const EmailPassword = require("supertokens-node/recipe/emailpassword");
@@ -6,10 +8,12 @@ const EmailVerification = require("supertokens-node/recipe/emailverification");
 const sesEmailSender = require("../middleware/sesEmailSender");
 const passwordResetEmailTemplate = require("../email/templates/passwordReset");
 const verificationEmailTemplate = require("../email/templates/emailVerification");
-
+type user = {
+  email: string;
+};
 type sesEmailInput = {
   email: string;
-  user: string;
+  user: user;
   type: "PASSWORD_RESET" | "EMAIL_VERIFICATION";
   passwordResetLink?: string;
   emailVerifyLink?: string;
@@ -26,11 +30,10 @@ const supertokensConfig = {
   },
   recipeList: [
     EmailPassword.init({
-      override: {
+      emailDelivery: {
         //@ts-ignore
-        emailDelivery: (originalImplementation) => {
+        override: (originalImplementation) => {
           return {
-            //@ts-ignore
             ...originalImplementation,
             sendEmail: async (input: sesEmailInput) => {
               const { email, type } = input;
@@ -41,20 +44,30 @@ const supertokensConfig = {
                   passwordResetEmailTemplate(input.passwordResetLink),
                 );
               }
-              if (type === "EMAIL_VERIFICATION") {
-                await sesEmailSender(
-                  email,
-                  "Verify your mail",
-                  verificationEmailTemplate(input.emailVerifyLink),
-                );
-              }
             },
           };
         },
       },
     }),
+    EmailVerification.init({
+      mode: "REQUIRED",
+      emailDelivery: {
+        //@ts-ignore
+        override: (originalImplementation) => ({
+          ...originalImplementation,
+          sendEmail: async (input: sesEmailInput) => {
+            if (input.type === "EMAIL_VERIFICATION") {
+              await sesEmailSender(
+                input.user.email,
+                "Verify your mail",
+                verificationEmailTemplate(input.emailVerifyLink),
+              );
+            }
+          },
+        }),
+      },
+    }),
     Session.init(),
-    EmailVerification.init({ mode: "REQUIRED" }),
   ],
 };
 module.exports = { supertokensConfig };
