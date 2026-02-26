@@ -1,11 +1,11 @@
-import type { Request, Response, NextFunction } from "express";
+import { Request, Response, NextFunction } from "express";
 interface AppError extends Error {
   statusCode?: number;
   status?: number;
 }
 
 //next param should exist in error handling functions
-function customErrorHandler(
+export default function customErrorHandler(
   err: unknown,
   req: Request,
   res: Response,
@@ -34,4 +34,3 @@ function customErrorHandler(
     ...(process.env.NODE_ENV === "development" && { stack: error.stack }),
   });
 }
-module.exports = customErrorHandler;

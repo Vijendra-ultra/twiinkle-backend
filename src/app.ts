@@ -1,16 +1,10 @@
-const express = require("express");
-const cors = require("cors");
-const supertokens = require("supertokens-node");
-const { supertokensConfig } = require("./config/supertokensconfig");
-const customErrorHandler = require("./middleware/errorHandler");
-const {
-  middleware,
-  errorHandler,
-} = require("supertokens-node/framework/express");
-
-supertokens.init(supertokensConfig);
-
+import customErrorHandler from "./middleware/errorHandler";
+import express from "express";
+import cors from "cors";
+import { toNodeHandler } from "better-auth/node";
+import { auth } from "./auth";
 const app = express();
+app.use(express.json());
 app.use(
   cors({
     origin: process.env.WEBSITE_DOMAIN,
@@ -26,9 +20,7 @@ app.use(
     ],
   }),
 );
-app.use(express.json());
-app.use(middleware());
+app.all("/api/auth/*", toNodeHandler(auth));
 
-app.use(errorHandler());
 app.use(customErrorHandler);
-module.exports = app;
+export default app;

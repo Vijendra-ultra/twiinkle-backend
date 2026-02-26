@@ -1,6 +1,6 @@
-import distTypes = require("@aws-sdk/client-ses");
+import { SendEmailCommand, SESClient } from "@aws-sdk/client-ses";
 
-const sesClient = new distTypes.SESClient({
+const sesClient = new SESClient({
   region: "ap-south-1",
   credentials: {
     accessKeyId: process.env.AWS_ACCESS_kEY_ID!,
@@ -9,7 +9,7 @@ const sesClient = new distTypes.SESClient({
 });
 const sesEmailSender = async (to: string, subject: string, body: string) => {
   try {
-    const command = new distTypes.SendEmailCommand({
+    const command = new SendEmailCommand({
       Destination: {
         ToAddresses: [to],
       },
@@ -34,4 +34,4 @@ const sesEmailSender = async (to: string, subject: string, body: string) => {
     throw err;
   }
 };
-module.exports = sesEmailSender;
+export default sesEmailSender;
